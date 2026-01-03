@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Alibaug Trip Feedback</title>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  background: linear-gradient(135deg, #2193b0, #6dd5ed);
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.app {
+  background: white;
+  width: 360px;
+  padding: 25px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+.subtitle {
+  color: #666;
+}
+.option {
+  background: #f2f2f2;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.option:hover {
+  background: #dbeafe;
+}
+.option.selected {
+  background: #2563eb;
+  color: white;
+}
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  resize: none;
+}
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+<h1>🏖 Alibaug Trip Feedback</h1>
+<p class="subtitle">Quick, fun & honest 😄</p>
+
+<p style="font-size: 13px; color: #444; margin-top: 10px;">
+  ही feedback पूर्णपणे anonymous आहे. तुमचे नाव कुठेही save होणार नाही — कृपया प्रामाणिक उत्तर द्या 😊<br>
+  ही माहिती आम्ही future trips सुधारण्यासाठी वापरणार आहोत.
+</p>
+
+<div id="card"></div>
+
+<button id="nextBtn">Next →</button>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwco6Hcgyz6r0JdWBv8PZcDtoC1JdUkbAjZqnoKTDiyz4FAZIU0nWNVFpYqIRRFMr7nTA/exec";
+
+// QUESTIONS
+const questions = [
+  { key: "overall_experience", text: "1. How would you rate your overall experience with the trip arranged by Let’s Firuya?", options: ["🔥 Mast", "🙂 Good", "😐 Okay", "😵 Never again"] },
+  { key: "planning", text: "2. How satisfied were you with the trip planning and coordination?", options: ["Very satisfied", "Satisfied", "Neutral", "Dissatisfied"] },
+  { key: "pre_info", text: "3. How clear and helpful was the information provided before the trip?", options: ["Very clear", "Clear", "Somewhat unclear", "Not clear"] },
+  { key: "transport", text: "4. How satisfied were you with the transportation arrangements?", options: ["Very satisfied", "Satisfied", "Neutral", "Dissatisfied"] },
+  { key: "stay", text: "5. How would you rate the accommodation provided during the trip?", options: ["Excellent", "Good", "Average", "Poor"] },
+  { key: "promise", text: "6. Did the arrangements match what was promised at the time of booking?", options: ["Yes, exactly", "Mostly", "Somewhat", "No"] },
+  { key: "itinerary", text: "7. How well was the itinerary planned and executed?", options: ["Very well", "Well", "Average", "Poorly"] },
+  { key: "activities", text: "8. Were the activities and sightseeing options enjoyable and well-organized?", options: ["Yes, very", "Yes", "Somewhat", "No"] },
+  { key: "pace", text: "9. Was the pace of the trip comfortable?", options: ["Yes, comfortable", "Somewhat", "Too fast", "Too slow"] },
+  { key: "safety", text: "10. Did you feel safe and well-supported throughout the trip?", options: ["Yes", "Mostly", "Somewhat", "No"] },
+  { key: "value", text: "11. How would you rate the value for money of the trip?", options: ["Excellent", "Good", "Average", "Poor"] },
+  { key: "recommend", text: "12. Would you recommend Let’s Firuya to others?", options: ["Definitely", "Maybe", "Not sure", "No"] }
+];
+
+// ANSWERS INIT
+let answers = {
+  overall_experience:"", planning:"", pre_info:"", transport:"", stay:"", promise:"", itinerary:"", activities:"",
+  pace:"", safety:"", value:"", recommend:"", like:"", improve:"", comments:""
+};
+
+let current = 0;
+const card = document.getElementById("card");
+const nextBtn = document.getElementById("nextBtn");
+
+renderQuestion();
+
+function renderQuestion() {
+  const q = questions[current];
+  card.innerHTML = `<h3>${q.text}</h3>`;
+  q.options.forEach(opt => {
+    const div = document.createElement("div");
+    div.className = "option";
+    div.innerText = opt;
+    div.onclick = () => {
+      document.querySelectorAll(".option").forEach(o=>o.classList.remove("selected"));
+      div.classList.add("selected");
+      answers[q.key] = opt;
+    };
+    card.appendChild(div);
+  });
+}
+
+nextBtn.onclick = () => {
+  const currentKey = questions[current].key;
+  if(!answers[currentKey]) return alert("Please select an option to continue");
+  current++;
+  if(current < questions.length) renderQuestion();
+  else showTextQuestions();
+};
+
+function showTextQuestions() {
+  card.innerHTML = `
+    <h3>13. What did you like most about the trip?</h3>
+    <textarea id="like" rows="3" placeholder="Your favorite moments..."></textarea>
+
+    <h3>14. What areas do you think can be improved?</h3>
+    <textarea id="improve" rows="3" placeholder="Your suggestions..."></textarea>
+
+    <h3>15. Any additional comments or suggestions for Let’s Firuya?</h3>
+    <textarea id="comments" rows="3" placeholder="Your comments..."></textarea>
+  `;
+  nextBtn.innerText = "Submit 🚀";
+  nextBtn.onclick = submitData;
+}
+
+function submitData() {
+  nextBtn.disabled = true;
+
+  answers.like = document.getElementById("like").value.trim();
+  answers.improve = document.getElementById("improve").value.trim();
+  answers.comments = document.getElementById("comments").value.trim();
+
+  fetch(API_URL, {
+    method:"POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(answers)
+  })
+  .then(()=>{ card.innerHTML="<h2>🎉 Feedback saved. Thank you!</h2>"; nextBtn.style.display="none"; })
+  .catch(()=>{ alert("❌ Something went wrong. Please try again."); nextBtn.disabled=false; });
+}
+</script>
+</body>
+</html>
